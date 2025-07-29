@@ -1,0 +1,81 @@
+# charts/dashboard-ui/values.yaml
+# Default configuration values for the dashboard-ui Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/dashboard-ui
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  # The dashboard is the main user-facing component, so Ingress is enabled.
+  enabled: true
+  className: "istio" # Use the Istio ingress controller
+  annotations:
+    # kubernetes.io/ingress.class: istio
+  hosts:
+    # This host will be the main entry point for users accessing the dashboard.
+    - host: qsn.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  # We are commenting out resource requests and limits for local development
+  # to avoid issues on resource-constrained machines.
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 200m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+# Environment variables to be injected into the service container.
+# The Next.js app can use these to know the URLs of its backend APIs.
+env: {}
+  # NEXT_PUBLIC_API_URL: "http://api.qsn.local"
+  # NEXT_PUBLIC_ALERTS_WS_URL: "ws://alerts.qsn.local"
+
