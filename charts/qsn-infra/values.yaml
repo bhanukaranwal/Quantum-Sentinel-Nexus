@@ -1,0 +1,101 @@
+# charts/qsn-infra/values.yaml
+# This file provides the configuration values for the qsn-infra umbrella chart.
+# These settings are optimized for a local development environment (e.g., KinD).
+
+# --- Global Toggles ---
+# These flags correspond to the 'condition' fields in Chart.yaml, allowing us
+# to easily enable or disable the deployment of each component.
+
+kafka:
+  enabled: true
+cassandra:
+  enabled: true
+neo4j:
+  enabled: true
+redis:
+  enabled: true
+minio:
+  enabled: true
+istio:
+  enabled: true
+
+# --- Dependency Configurations ---
+# Here we override the default values of the sub-charts to tailor them for our
+# local development needs.
+
+# Configuration for the Bitnami Kafka chart
+kafka:
+  # We don't need a highly-available Kafka cluster for local dev.
+  # One broker is sufficient.
+  replicaCount: 1
+  zookeeper:
+    replicaCount: 1
+    persistence:
+      enabled: false # Disable persistent storage for Zookeeper
+  persistence:
+    enabled: false # Disable persistent storage for Kafka brokers
+  # Define Kafka topics that should be created automatically.
+  # This ensures our services have the topics they need on startup.
+  topics:
+    - name: txn-raw
+      partitions: 3
+      replicationFactor: 1
+    - name: features
+      partitions: 3
+      replicationFactor: 1
+    - name: risk-scores
+      partitions: 3
+      replicationFactor: 1
+    - name: alerts
+      partitions: 3
+      replicationFactor: 1
+
+# Configuration for the Bitnami Cassandra chart
+cassandra:
+  # A single-node Cassandra cluster is fine for local dev.
+  clusterSize: 1
+  persistence:
+    enabled: false # Disable persistence to run in-memory
+
+# Configuration for the Neo4j chart
+neo4j:
+  # Use the community edition for local development.
+  edition: "community"
+  # Disable password requirements for easier local access.
+  passwordFromSecret: ""
+  # Accept the license agreement.
+  acceptLicenseAgreement: "yes"
+  volumes:
+    data:
+      # Use an ephemeral emptyDir volume instead of persistent storage.
+      mode: "ephemeral"
+
+# Configuration for the Bitnami Redis chart
+redis:
+  # Use Redis as a standalone instance, not a cluster.
+  architecture: "standalone"
+  auth:
+    enabled: false # No password needed for local dev
+  master:
+    persistence:
+      enabled: false # Disable persistence
+
+# Configuration for the Bitnami MinIO chart
+minio:
+  # Run a single MinIO instance.
+  mode: "standalone"
+  persistence:
+    enabled: false # Disable persistence
+  # Default credentials for local access.
+  # In a real environment, these would come from Vault.
+  auth:
+    rootUser: "minioadmin"
+    rootPassword: "minioadminpassword"
+
+# Configuration for the Istio charts
+istiod:
+  # Istio configuration can be extensive. These are just basic settings.
+  # Enable access logging for debugging purposes.
+  meshConfig:
+    accessLogFile: /dev/stdout
+
