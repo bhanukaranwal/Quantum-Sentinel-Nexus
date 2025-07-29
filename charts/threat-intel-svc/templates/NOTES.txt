@@ -1,0 +1,35 @@
+{{/*
+charts/threat-intel-svc/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "threat-intel-svc.notes" -}}
+The QSN Threat Intelligence Service (threat-intel-svc) has been deployed successfully.
+
+This service provides a graph-based API for querying relationships between
+entities like users, accounts, and devices.
+
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+  export INGRESS_HOST=$(kubectl get ingress {{ include "threat-intel-svc.fullname" . }} -o jsonpath='{.spec.rules[0].host}')
+  echo "Threat Intel API URL: http://${INGRESS_HOST}/"
+{{- else }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "threat-intel-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "You can access the service by port-forwarding:"
+  echo "  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8000:$CONTAINER_PORT"
+  echo "Then you can send requests to http://localhost:8000"
+{{- end }}
+
+2. To see the pod logs, which will show API requests and Kafka consumer activity, run:
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "threat-intel-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} logs -f $POD_NAME
+
+3. You can access the auto-generated API documentation (Swagger UI) at:
+  http://${INGRESS_HOST}/docs
+
+Example API query to find entities related to user 'u123':
+  curl http://${INGRESS_HOST}/entity/USER/u123/related
+{{- end }}
+
+{{- .Values.notes | default (include "threat-intel-svc.notes" .) }}
