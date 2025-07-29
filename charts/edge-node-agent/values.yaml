@@ -1,0 +1,86 @@
+# charts/edge-node-agent/values.yaml
+# Default configuration values for the edge-node-agent Helm chart.
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/edge-node-agent
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext: {}
+
+securityContext:
+  # This agent may need elevated privileges to access host devices like GPUs.
+  # This should be configured with caution and locked down as much as possible.
+  # For example, running as root might be necessary to access certain drivers.
+  # allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+
+# This service is a background agent and does not expose any ports.
+service:
+  enabled: false
+
+# --- DaemonSet Configuration ---
+
+# nodeSelector ensures that this DaemonSet only runs on nodes that match
+# these labels. This is how you target your specific edge hardware.
+nodeSelector:
+  node-type: edge-gpu
+  # another-label: value
+
+# Tolerations might be needed if your edge nodes have specific taints.
+tolerations: []
+# - key: "nvidia.com/gpu"
+#   operator: "Exists"
+#   effect: "NoSchedule"
+
+# --- Host Path Volumes ---
+# These volumes mount directories from the host node directly into the pod.
+# This is essential for an edge agent to access local data or device files.
+# WARNING: hostPath can be a security risk. Use it with caution.
+volumeMounts:
+  - name: local-data
+    mountPath: /data
+  # This might be needed to pass through device drivers (e.g., for Coral TPUs).
+  # - name: dev-bus-usb
+  #   mountPath: /dev/bus/usb
+
+volumes:
+  - name: local-data
+    hostPath:
+      # The path on the host machine where the private training data is stored.
+      path: /var/qsn/data
+      type: DirectoryOrCreate
+  # - name: dev-bus-usb
+  #   hostPath:
+  #     path: /dev/bus/usb
+
+# Environment variables to be injected into the service container.
+env:
+  # The address of the central FL Coordinator.
+  COORDINATOR_ADDRESS: "fl-coordinator-svc.default.svc.cluster.local:50052"
+
+  # A unique identifier for this bank or edge node.
+  BANK_ID: "bank-a-edge-node-01"
+
+  # The path inside the container where the agent should look for data.
+  LOCAL_DATA_PATH: "/data/private_transactions.csv"
