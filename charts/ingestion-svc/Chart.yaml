@@ -1,0 +1,15 @@
+# charts/ingestion-svc/Chart.yaml
+# This file defines the metadata for the ingestion-svc Helm chart.
+
+apiVersion: v2
+name: ingestion-svc
+description: A Helm chart for deploying the QSN Ingestion Service.
+type: application
+
+# This version should be incremented for each new release of the chart.
+version: 0.1.0
+
+# The 'appVersion' corresponds to the version of the application being deployed.
+# It's good practice to keep this in sync with the application's version tag.
+appVersion: "1.0.0"
+
