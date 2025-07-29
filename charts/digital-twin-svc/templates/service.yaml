@@ -1,0 +1,22 @@
+{{/*
+charts/digital-twin-svc/templates/service.yaml
+This template defines the Kubernetes Service for the digital-twin-svc.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "digital-twin-svc.fullname" . }}
+  labels:
+    {{- include "digital-twin-svc.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+      # The appProtocol is important for Istio to correctly identify the
+      # protocol as gRPC for advanced routing and telemetry.
+      appProtocol: grpc
+  selector:
+    {{- include "digital-twin-svc.selectorLabels" . | nindent 4 }}
