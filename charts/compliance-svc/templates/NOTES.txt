@@ -1,0 +1,26 @@
+{{/*
+charts/compliance-svc/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "compliance-svc.notes" -}}
+The QSN Compliance Service (compliance-svc) has been deployed successfully.
+
+This service is a background worker that consumes alerts from Kafka and evaluates
+them against a set of compliance rules using the Drools rules engine.
+
+1. To check the status of the deployment, run:
+  kubectl get deployments -l "app.kubernetes.io/name={{ include "compliance-svc.name" . }}"
+
+2. To see the pod logs, which will show consumed Kafka messages and rule engine activity, run:
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "compliance-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} logs -f $POD_NAME
+
+3. The service's health endpoint can be checked internally via its service port:
+   {{ include "compliance-svc.fullname" . }}:{{ .Values.service.port }}/actuator/health
+
+This service does not have a public-facing ingress but its health is monitored
+by Kubernetes liveness and readiness probes.
+{{- end }}
+
+{{- .Values.notes | default (include "compliance-svc.notes" .) }}
