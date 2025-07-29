@@ -1,0 +1,57 @@
+{{/*
+charts/edge-node-agent/templates/daemonset.yaml
+This template defines the Kubernetes DaemonSet for the edge-node-agent.
+A DaemonSet ensures that one copy of the pod runs on each targeted node in the cluster.
+*/}}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "edge-node-agent.fullname" . }}
+  labels:
+    {{- include "edge-node-agent.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "edge-node-agent.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "edge-node-agent.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "edge-node-agent.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      # The nodeSelector is critical for a DaemonSet. It restricts the agent
+      # to only run on nodes with matching labels (e.g., your edge devices).
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      # Tolerations may be required to schedule pods on nodes with specific taints.
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # This agent is a background worker and does not expose ports.
+          # Probes are omitted as its lifecycle is tied to the node.
+          env:
+            {{- range $key, $val := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+          volumeMounts:
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- toYaml .Values.volumes | nindent 8 }}
