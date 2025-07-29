@@ -1,0 +1,19 @@
+{{/*
+charts/payments-simulator/templates/service.yaml
+This template defines the Kubernetes Service for the payments-simulator.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "payments-simulator.fullname" . }}
+  labels:
+    {{- include "payments-simulator.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "payments-simulator.selectorLabels" . | nindent 4 }}
