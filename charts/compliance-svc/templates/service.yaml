@@ -1,0 +1,19 @@
+{{/*
+charts/compliance-svc/templates/service.yaml
+This template defines the Kubernetes Service for the compliance-svc.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "compliance-svc.fullname" . }}
+  labels:
+    {{- include "compliance-svc.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "compliance-svc.selectorLabels" . | nindent 4 }}
