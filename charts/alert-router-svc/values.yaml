@@ -1,0 +1,94 @@
+# charts/alert-router-svc/values.yaml
+# Default configuration values for the alert-router-svc Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/alert-router-svc
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  ports:
+    # Port for the WebSocket connections.
+    - port: 8081
+      targetPort: ws
+      protocol: TCP
+      name: ws
+    # Port for the ZeroMQ fallback publisher.
+    - port: 5555
+      targetPort: zmq
+      protocol: TCP
+      name: zmq
+
+ingress:
+  # Expose the WebSocket port via an Ingress.
+  enabled: true
+  className: "istio" # Use the Istio ingress controller
+  annotations:
+    # Annotations needed for Istio to handle WebSockets correctly.
+    # kubernetes.io/ingress.class: istio
+  hosts:
+    - host: alerts.qsn.local # A local hostname for the service
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  # Resource requests and limits for a high-performance C++ service.
+  # These values should be tuned based on performance testing.
+  # We are commenting them out for local dev to avoid resource contention.
+  # limits:
+  #   cpu: "1"
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 500m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+# Environment variables to be injected into the service container.
+env:
+  # The address of the Kafka brokers.
+  KAFKA_BROKERS: "qsn-infra-kafka:9092"
+
+  # The Kafka topic to consume alerts from.
+  KAFKA_TOPIC: "alerts"
+
