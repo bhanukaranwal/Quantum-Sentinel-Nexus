@@ -1,0 +1,73 @@
+# .pre-commit-config.yaml
+#
+# This file configures the pre-commit framework, which runs a series of
+# automated checks before a git commit is created. This helps maintain
+# code quality and prevents common errors from being committed.
+#
+# To install: `pip install pre-commit`
+# To set up: `pre-commit install`
+
+# --- Repositories and Hooks ---
+# Each 'repo' points to a collection of pre-commit hooks.
+
+repos:
+# --- General Purpose Hooks ---
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+    -   id: trailing-whitespace # Trims trailing whitespace.
+    -   id: end-of-file-fixer # Ensures files end in a newline.
+    -   id: check-yaml # Checks yaml files for parseable syntax.
+    -   id: check-json # Checks json files for parseable syntax.
+    -   id: check-merge-conflict # Checks for files that contain merge conflict strings.
+    -   id: check-added-large-files # Prevents giant files from being committed.
+
+# --- Security Hooks ---
+-   repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+    -   id: gitleaks # Scans for hardcoded secrets and credentials.
+        name: Detect hardcoded secrets (gitleaks)
+
+# --- Language-Specific Linters & Formatters ---
+
+# Python
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.9
+    hooks:
+    -   id: ruff # Linter for Python code.
+        args: [--fix]
+    -   id: ruff-format # Formatter for Python code.
+
+# Go
+-   repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+    -   id: go-fmt # Formats Go code.
+    -   id: go-vet # Reports suspicious constructs.
+    -   id: go-imports # Formats and adjusts imports.
+    -   id: go-mod-tidy # Ensures go.mod is tidy.
+
+# Shell Scripts
+-   repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+    -   id: shellcheck # Linter for shell scripts.
+
+# Dockerfile
+-   repo: https://github.com/hadolint/hadolint
+    rev: v2.12.1-beta
+    hooks:
+    -   id: hadolint # Linter for Dockerfiles.
+
+# Markdown
+-   repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+    -   id: markdownlint # Linter for Markdown files.
+
+# Helm
+-   repo: https://github.com/gruntwork-io/pre-commit
+    rev: v0.1.23
+    hooks:
+    -   id: helmlint # Linter for Helm charts.
