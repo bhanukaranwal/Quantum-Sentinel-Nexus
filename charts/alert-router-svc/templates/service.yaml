@@ -1,0 +1,23 @@
+{{/*
+charts/alert-router-svc/templates/service.yaml
+This template defines the Kubernetes Service for the alert-router-svc.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "alert-router-svc.fullname" . }}
+  labels:
+    {{- include "alert-router-svc.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.ports.ws.port }}
+      targetPort: ws
+      protocol: TCP
+      name: ws
+    - port: {{ .Values.service.ports.zmq.port }}
+      targetPort: zmq
+      protocol: TCP
+      name: zmq
+  selector:
+    {{- include "alert-router-svc.selectorLabels" . | nindent 4 }}
