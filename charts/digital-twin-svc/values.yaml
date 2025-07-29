@@ -1,0 +1,76 @@
+# charts/digital-twin-svc/values.yaml
+# Default configuration values for the digital-twin-svc Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/digital-twin-svc
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  # The port for the gRPC service.
+  port: 8082
+
+# This service does not need an Ingress as it's a backend gRPC service
+# that will be called by other internal services.
+ingress:
+  enabled: false
+
+resources:
+  # Akka applications can be memory intensive.
+  # These values should be tuned based on performance testing and the number of twins.
+  # We are commenting them out for local dev to avoid resource contention.
+  # limits:
+  #   cpu: "1"
+  #   memory: 1Gi
+  # requests:
+  #   cpu: 500m
+  #   memory: 512Mi
+
+autoscaling:
+  enabled: false
+
+# Environment variables to be injected into the service container.
+# The Akka application can use these to override settings in application.conf.
+env:
+  # Override the default gRPC port.
+  HTTP_PORT: "8082"
+  # KAFKA_BROKERS: "qsn-infra-kafka:9092"
+  # CASSANDRA_HOST: "qsn-infra-cassandra"
+
