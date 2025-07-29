@@ -1,0 +1,14 @@
+# charts/threat-intel-svc/Chart.yaml
+# This file defines the metadata for the threat-intel-svc Helm chart.
+
+apiVersion: v2
+name: threat-intel-svc
+description: A Helm chart for deploying the QSN Threat Intelligence Service.
+type: application
+
+# This version should be incremented for each new release of the chart.
+version: 0.1.0
+
+# The 'appVersion' corresponds to the version of the application being deployed.
+appVersion: "1.0.0"
+
