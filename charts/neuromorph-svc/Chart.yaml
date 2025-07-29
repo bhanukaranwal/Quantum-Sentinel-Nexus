@@ -1,0 +1,14 @@
+# charts/neuromorph-svc/Chart.yaml
+# This file defines the metadata for the neuromorph-svc Helm chart.
+
+apiVersion: v2
+name: neuromorph-svc
+description: A Helm chart for deploying the QSN Neuromorphic Service.
+type: application
+
+# This version should be incremented for each new release of the chart.
+version: 0.1.0
+
+# The 'appVersion' corresponds to the version of the application being deployed.
+appVersion: "1.0.0"
+
