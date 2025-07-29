@@ -1,0 +1,89 @@
+# charts/auth-gateway-svc/values.yaml
+# Default configuration values for the auth-gateway-svc Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/auth-gateway-svc
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 3001
+
+ingress:
+  # The gateway is the primary entry point, so Ingress is enabled.
+  enabled: true
+  className: "istio" # Use the Istio ingress controller
+  annotations:
+    # kubernetes.io/ingress.class: istio
+  hosts:
+    # This host will route all API traffic to the gateway.
+    - host: api.qsn.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  # We are commenting out resource requests and limits for local development
+  # to avoid issues on resource-constrained machines.
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 200m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+# Environment variables to be injected into the service container.
+# These values are read by the Node.js application to configure its proxies.
+env:
+  # The internal Kubernetes service URL for the ingestion-svc.
+  INGESTION_SVC_URL: "http://ingestion-svc:8080"
+
+  # The port the gateway service itself should run on.
+  PORT: "3001"
+
+  # In a real application, you would have many more variables here for:
+  # KEYCLOAK_URL: "http://keycloak.local/auth/realms/qsn"
+  # KEYCLOAK_CLIENT_ID: "auth-gateway"
+  # JWT_SECRET: "your-super-secret-key"
+
