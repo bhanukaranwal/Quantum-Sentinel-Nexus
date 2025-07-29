@@ -1,0 +1,6 @@
+// services/ingestion-svc/go.sum
+
+github.com/go-chi/chi/v5 v5.0.12 h1:85T8Nct4i2V+f9e7f2Na1f5oTfL4Lbs22dO24sMvI7Y=
+github.com/go-chi/chi/v5 v5.0.12/go.mod h1:1+Jz2g1y92V4pS2lWLe5f1N/4LS2jI2stqP2s2+jHcw=
+github.com/google/uuid v1.6.0 h1:b+Gls/zTAa/2F/A8Aohh1gXyP+PSy4lJg+I/2QnTMGk=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgIe+i2FzOqg3hL2JODsMPf2r1eIe+gU93w4=
