@@ -1,0 +1,19 @@
+/* services/dashboard-ui/src/app/globals.css */
+
+/* These directives inject Tailwind's base styles and any base styles
+   registered by plugins. */
+@tailwind base;
+
+/* These directives inject Tailwind's component classes and any component
+   classes registered by plugins. */
+@tailwind components;
+
+/* These directives inject Tailwind's utility classes and any utility
+   classes registered by plugins. */
+@tailwind utilities;
+
+/* You can add your own global base styles here if needed. */
+body {
+  background-color: #0a0e14; /* A dark background for the body */
+  color: #c8d3f5; /* A light, soft text color for readability */
+}
