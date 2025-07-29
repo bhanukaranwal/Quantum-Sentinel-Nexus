@@ -1,0 +1,26 @@
+{{/*
+charts/fl-coordinator-svc/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "fl-coordinator-svc.notes" -}}
+The QSN Federated Learning Coordinator Service (fl-coordinator-svc) has been deployed successfully.
+
+This service is the brain of the federated learning pipeline. It orchestrates training
+rounds with participating edge nodes, securely aggregates model updates, and commits
+the new model versions to the blockchain.
+
+1. To check the status of the deployment, run:
+  kubectl get deployments -l "app.kubernetes.io/name={{ include "fl-coordinator-svc.name" . }}"
+
+2. To see the pod logs, which will show the status of federated rounds, run:
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "fl-coordinator-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} logs -f $POD_NAME
+
+3. This service is available within the cluster at the following DNS address and port:
+   {{ include "fl-coordinator-svc.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+Edge agents will connect to this address to participate in training rounds.
+{{- end }}
+
+{{- .Values.notes | default (include "fl-coordinator-svc.notes" .) }}
