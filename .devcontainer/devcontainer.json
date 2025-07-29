@@ -1,0 +1,48 @@
+// .devcontainer/devcontainer.json
+{
+  "name": "Quantum Sentinel Nexus",
+  // Tells VS Code to build the dev environment from a Dockerfile.
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  // --- VS Code Settings & Extensions ---
+  "customizations": {
+    "vscode": {
+      // A list of recommended VS Code extensions to install inside the container.
+      "extensions": [
+        // Core
+        "ms-vscode.docker",
+        "GitHub.copilot",
+        "eamodio.gitlens",
+        // Language Support
+        "golang.go",
+        "rust-lang.rust-analyzer",
+        "ms-python.python",
+        "ms-azuretools.vscode-docker",
+        "esbenp.prettier-vscode",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "redhat.vscode-yaml",
+        // Frameworks & Tools
+        "hashicorp.terraform",
+        "mindaro.ide-rspec",
+        "ms-vscode.makefile-tools"
+      ],
+      // Default settings to apply inside the dev container.
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "go.toolsManagement.autoUpdate": true
+      }
+    }
+  },
+  // --- Container Configuration ---
+  // Forward ports from the container to the local machine.
+  "forwardPorts": [
+    3000, // dashboard-ui
+    10350 // Tilt UI
+  ],
+  // The command to run after the container is created.
+  "postCreateCommand": "pre-commit install && go install github.com/google/wire/cmd/wire@latest",
+  // Run as the non-root 'vscode' user.
+  "remoteUser": "vscode"
+}
