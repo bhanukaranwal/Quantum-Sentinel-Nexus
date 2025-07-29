@@ -1,0 +1,23 @@
+{{/*
+charts/feature-engine-svc/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "feature-engine-svc.notes" -}}
+The QSN Feature Engine Service (feature-engine-svc) has been deployed successfully.
+
+This service is a background worker that consumes messages from the '{{ .Values.env.INPUT_TOPIC }}' Kafka topic,
+engineers features, and publishes the results to the '{{ .Values.env.OUTPUT_TOPIC }}' topic.
+
+It does not expose any network ports.
+
+You can monitor its activity by checking the pod logs:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "feature-engine-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} logs -f $POD_NAME
+
+When the ingestion-svc receives data, you should see log messages here indicating that
+messages are being consumed and processed.
+{{- end }}
+
+{{- .Values.notes | default (include "feature-engine-svc.notes" .) }}
