@@ -1,0 +1,97 @@
+# charts/threat-intel-svc/values.yaml
+# Default configuration values for the threat-intel-svc Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/threat-intel-svc
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  # This service might be exposed internally or through the main gateway.
+  # For local development, we can enable a direct Ingress.
+  enabled: true
+  className: "istio" # Use the Istio ingress controller
+  annotations:
+    # kubernetes.io/ingress.class: istio
+  hosts:
+    - host: threat-intel.qsn.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  # We are commenting out resource requests and limits for local development
+  # to avoid issues on resource-constrained machines.
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 250m
+  #   memory: 256Mi
+
+autoscaling:
+  enabled: false
+
+# Environment variables to be injected into the service container.
+# These values are read by the FastAPI application to connect to its dependencies.
+env:
+  # The connection URI for the Neo4j database.
+  NEO4J_URI: "neo4j://qsn-infra-neo4j:7687"
+
+  # The username for Neo4j.
+  NEO4J_USER: "neo4j"
+
+  # The password for Neo4j. In a real deployment, this should come from a
+  # Kubernetes Secret and not be hardcoded here.
+  # For example, using a secretKeyRef:
+  # NEO4J_PASSWORD:
+  #   secretKeyRef:
+  #     name: neo4j-credentials
+  #     key: password
+  NEO4J_PASSWORD: "password" # Default password from the Neo4j chart
+
+  # Kafka configuration for the consumer part of the service.
+  KAFKA_BROKERS: "qsn-infra-kafka:9092"
+  KAFKA_TOPIC: "entity-events"
+
