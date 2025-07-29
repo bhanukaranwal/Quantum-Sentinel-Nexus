@@ -1,0 +1,25 @@
+{{/*
+charts/digital-twin-svc/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "digital-twin-svc.notes" -}}
+The QSN Digital Twin Service (digital-twin-svc) has been deployed successfully.
+
+This is a stateful gRPC service responsible for maintaining real-time digital
+profiles of customers and their behavior.
+
+1. To check the status of the deployment, run:
+  kubectl get deployments -l "app.kubernetes.io/name={{ include "digital-twin-svc.name" . }}"
+
+2. To see the pod logs, which will show gRPC requests and state updates, run:
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "digital-twin-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} logs -f $POD_NAME
+
+3. This service is available within the cluster at the following DNS address and port:
+   {{ include "digital-twin-svc.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+Other services can use this address to send gRPC requests to get twin information or run simulations.
+{{- end }}
+
+{{- .Values.notes | default (include "digital-twin-svc.notes" .) }}
