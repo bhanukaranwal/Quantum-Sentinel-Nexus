@@ -1,0 +1,231 @@
+// tools/cli/src/main.rs
+// This file contains the complete source for the `qsnctl` CLI tool.
+// It uses the `clap` crate for parsing arguments and `std::process::Command`
+// to execute external commands like `kubectl`, `helm`, and `tilt`.
+
+use clap::{Parser, Subcommand};
+use std::process::{Command, Stdio};
+use std::env;
+
+/// -----------------
+/// CLI Definition
+/// -----------------
+
+#[derive(Parser)]
+#[command(
+    author = "Your Name",
+    version = "1.0.0",
+    about = "Quantum Sentinel Nexus Control (qsnctl) - A CLI to manage the QSN ecosystem.",
+    long_about = "qsnctl provides a set of commands to streamline local development, including spinning up the environment, seeding data, and running benchmarks."
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// 🚀 Spin up the local development environment using KinD and Tilt.
+    DevUp {
+        /// Path to the KinD cluster configuration file.
+        #[arg(long, default_value = "infra/local-dev/kind-cluster.yaml")]
+        kind_config: String,
+
+        /// Name of the KinD cluster.
+        #[arg(long, default_value = "qsn-dev")]
+        cluster_name: String,
+    },
+
+    /// down the local development environment.
+    DevDown {
+        /// Name of the KinD cluster to delete.
+        #[arg(long, default_value = "qsn-dev")]
+        cluster_name: String,
+    },
+
+    /// 🌱 Seed the system with synthetic data via the payments-simulator.
+    DemoData {
+        /// The number of synthetic transactions to generate.
+        #[arg(short, long, default_value_t = 10000)]
+        count: u64,
+        
+        /// The target host for the payments simulator.
+        #[arg(long, default_value = "http://localhost:8089")]
+        host: String,
+    },
+
+    /// 🏎️ Run performance benchmarks against the scoring service.
+    ScoreBench,
+
+    /// 🔎 Open the Hyperledger Fabric Operations Console in the browser.
+    FabricView,
+}
+
+/// -----------------
+/// Main Logic
+/// -----------------
+
+fn main() {
+    let cli = Cli::parse();
+    
+    // Set the project root directory for context
+    // This assumes the CLI is run from anywhere within the project directory.
+    // A more robust solution might search upwards for a `.qsn-root` file.
+    env::set_current_dir(project_root().unwrap_or_else(|_| ".".into())).expect("Failed to set current directory");
+
+    match &cli.command {
+        Commands::DevUp { kind_config, cluster_name } => {
+            handle_dev_up(kind_config, cluster_name);
+        }
+        Commands::DevDown { cluster_name } => {
+            handle_dev_down(cluster_name);
+        }
+        Commands::DemoData { count, host } => {
+            handle_demo_data(*count, host);
+        }
+        Commands::ScoreBench => {
+            handle_score_bench();
+        }
+        Commands::FabricView => {
+            handle_fabric_view();
+        }
+    }
+}
+
+/// -----------------
+/// Command Handlers
+/// -----------------
+
+/// Starts the local development environment.
+fn handle_dev_up(kind_config: &str, cluster_name: &str) {
+    println!("🚀 Starting Quantum Sentinel Nexus development environment...");
+
+    // Step 1: Check for prerequisites
+    println!("\n[1/4] Checking for prerequisites (docker, kubectl, kind, tilt)...");
+    check_prereq("docker");
+    check_prereq("kubectl");
+    check_prereq("kind");
+    check_prereq("tilt");
+    println!("✅ Prerequisites are satisfied.");
+
+    // Step 2: Create KinD cluster if it doesn't exist
+    println!("\n[2/4] Looking for existing KinD cluster '{}'...", cluster_name);
+    let existing_clusters = run_command("kind", &["get", "clusters"], "Failed to get kind clusters");
+    if !existing_clusters.contains(cluster_name) {
+        println!("Cluster not found. Creating new KinD cluster '{}'...", cluster_name);
+        run_command("kind", &["create", "cluster", "--name", cluster_name, "--config", kind_config], "Failed to create KinD cluster");
+        println!("✅ KinD cluster created.");
+    } else {
+        println!("✅ Found existing KinD cluster.");
+    }
+
+    // Step 3: Load necessary images into the cluster (e.g., for Istio, etc.)
+    // This step would be expanded in a real-world scenario.
+    println!("\n[3/4] Pre-loading essential images into the cluster...");
+    // Example: kind load docker-image istio/pilot:1.23.0 --name qsn-dev
+    println!("✅ Essential images loaded (stubbed).");
+
+    // Step 4: Start Tilt for live development
+    println!("\n[4/4] Starting Tilt for live-reloading...");
+    println!("Tilt will now take over. Press Ctrl+C in the Tilt UI to exit.");
+    if let Err(e) = Command::new("tilt").arg("up").stdout(Stdio::inherit()).stderr(Stdio::inherit()).status() {
+        eprintln!("Failed to start Tilt: {}", e);
+    }
+}
+
+/// Shuts down the local development environment.
+fn handle_dev_down(cluster_name: &str) {
+    println!("downing Quantum Sentinel Nexus development environment...");
+    run_command("kind", &["delete", "cluster", "--name", cluster_name], "Failed to delete KinD cluster");
+    println!("✅ Environment shut down successfully.");
+}
+
+/// Seeds the system with test data.
+fn handle_demo_data(count: u64, host: &str) {
+    println!("🌱 Seeding system with {} synthetic transactions...", count);
+    println!("This will run a Locust load test against the payments-simulator.");
+    
+    // In a real scenario, this would trigger a pre-configured Locust test.
+    // For now, we'll just show what would happen.
+    let locust_cmd = format!(
+        "locust -f services/payments-simulator/locustfile.py --headless -u {} -r 1000 -t 60s --host {}",
+        count, host
+    );
+    
+    println!("\nWould run a command like:");
+    println!("  {}", locust_cmd);
+    println!("\n✅ Data seeding process initiated (stubbed).");
+    // To actually run this:
+    // run_command("locust", &["-f", "...", ...], "Failed to run locust");
+}
+
+/// Runs performance benchmarks.
+fn handle_score_bench() {
+    println!("🏎️  Running performance benchmarks against the scoring-svc...");
+    println!("This would use a tool like 'ghz' for gRPC benchmarking.");
+    
+    // Example using ghz against a local gRPC service
+    let ghz_cmd = "ghz --insecure --proto ./services/scoring-svc/proto/scoring.proto --call scoring.v1.ScoringService.Predict -d '{\"features\":[]}' -c 100 -n 10000 grpc://localhost:50051";
+    
+    println!("\nWould run a command like:");
+    println!("  {}", ghz_cmd);
+    println!("\n✅ Benchmark initiated (stubbed).");
+}
+
+/// Opens the Fabric Operations Console.
+fn handle_fabric_view() {
+    println!("🔎 Opening Hyperledger Fabric Operations Console...");
+    
+    // This assumes the console is exposed via a Kubernetes service.
+    // The command will port-forward and then open the browser.
+    println!("This command would typically run 'kubectl port-forward' and open a browser.");
+    println!("\n✅ Port-forwarding and opening browser (stubbed).");
+
+    // Example logic:
+    // 1. Find the fabric ops console pod: `kubectl get pods -l app=fabric-ops-console -n fabric -o jsonpath='{.items[0].metadata.name}'`
+    // 2. Start port-forwarding in the background.
+    // 3. Open the browser: `open http://localhost:8080` or similar.
+}
+
+/// -----------------
+/// Helper Functions
+/// -----------------
+
+/// Checks if a command-line tool is installed and in the PATH.
+fn check_prereq(tool: &str) {
+    if Command::new(tool).arg("--version").stdout(Stdio::null()).stderr(Stdio::null()).status().is_err() {
+        eprintln!("❌ Error: Prerequisite '{}' not found in your PATH.", tool);
+        eprintln!("Please install it and try again.");
+        std::process::exit(1);
+    }
+}
+
+/// Runs an external command and returns its output. Panics on failure.
+fn run_command(command: &str, args: &[&str], error_msg: &str) -> String {
+    let output = Command::new(command)
+        .args(args)
+        .output()
+        .unwrap_or_else(|e| panic!("Failed to execute '{}': {}", command, e));
+
+    if !output.status.success() {
+        eprintln!("Error: {}", error_msg);
+        eprintln!("Stdout: {}", String::from_utf8_lossy(&output.stdout));
+        eprintln!("Stderr: {}", String::from_utf8_lossy(&output.stderr));
+        std::process::exit(1);
+    }
+    
+    String::from_utf8_lossy(&output.stdout).to_string()
+}
+
+/// Finds the project root by looking for a sentinel file/directory.
+fn project_root() -> Result<std::path::PathBuf, std::io::Error> {
+    let current_dir = env::current_dir()?;
+    for ancestor in current_dir.ancestors() {
+        if ancestor.join("infra").is_dir() && ancestor.join("services").is_dir() {
+            return Ok(ancestor.to_path_buf());
+        }
+    }
+    // Fallback to current dir if root not found
+    Ok(current_dir)
+}
+
