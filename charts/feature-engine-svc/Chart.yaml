@@ -1,0 +1,14 @@
+# charts/feature-engine-svc/Chart.yaml
+# This file defines the metadata for the feature-engine-svc Helm chart.
+
+apiVersion: v2
+name: feature-engine-svc
+description: A Helm chart for deploying the QSN Feature Engine Service.
+type: application
+
+# This version should be incremented for each new release of the chart.
+version: 0.1.0
+
+# The 'appVersion' corresponds to the version of the application being deployed.
+appVersion: "1.0.0"
+
