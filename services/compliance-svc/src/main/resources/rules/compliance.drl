@@ -1,0 +1,51 @@
+// services/compliance-svc/src/main/resources/rules/compliance.drl
+package com.qsn.rules
+
+import com.qsn.kafka.Alert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+// --- Globals ---
+// Globals are variables that can be passed into the rules engine from the application.
+// We can use this to get access to a logger.
+global Logger logger;
+
+// --- Rule 1: High-Value Transaction Alert ---
+// This rule fires if an alert has a severity of 'CRITICAL' and a risk score
+// above a certain threshold.
+rule "High-Value Transaction Alert"
+    when
+        // The condition part of the rule.
+        // It looks for an Alert object in the session that matches these criteria.
+        $alert: Alert(severity == "CRITICAL", score > 0.95)
+    then
+        // The action part of the rule, executed if the conditions are met.
+        logger.info("RULE FIRED: High-Value Transaction Alert for transaction: " + $alert.getTransactionId());
+        // In a real system, this could trigger an action, such as:
+        // - Sending an email to a compliance officer.
+        // - Creating a ticket in a case management system.
+        // - Publishing a new event to another Kafka topic for escalation.
+end
+
+// --- Rule 2: Suspicious Activity Report (SAR) Threshold ---
+// This rule uses more advanced features of Drools to detect when multiple
+// high-risk alerts occur for the same bank within a short time window.
+rule "SAR Threshold Check"
+    when
+        // 1. Find the first critical alert for a specific bank.
+        $alert1: Alert(severity == "CRITICAL", $bankId: bankId)
+
+        // 2. Find a second, different critical alert for the same bank.
+        $alert2: Alert(severity == "CRITICAL", bankId == $bankId, this != $alert1)
+
+        // 3. Find a third, different critical alert for the same bank.
+        $alert3: Alert(severity == "CRITICAL", bankId == $bankId, this != $alert1, this != $alert2)
+
+        // This is a simplified check. A real-world rule would use a time window, e.g.,
+        // 'over window:time(1h)' to check for events within the last hour.
+    then
+        logger.warn("RULE FIRED: SAR Threshold Reached for Bank ID: " + $bankId);
+        // This is a serious event and would trigger a high-priority action.
+        // For example, automatically filing a Suspicious Activity Report (SAR)
+        // or freezing the associated accounts pending investigation.
+end
