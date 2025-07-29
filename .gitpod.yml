@@ -1,0 +1,79 @@
+# .gitpod.yml
+#
+# This file configures the automated cloud development environment for Gitpod.
+# It ensures that anyone opening this repository in Gitpod gets a consistent,
+# pre-built environment with all tools and dependencies ready to go.
+
+# --- Tasks ---
+# Defines the commands to be run when a workspace is created or started.
+tasks:
+  - name: Install Tools & Initialize
+    # The 'init' command runs only once when the workspace is first created.
+    # It's used for long-running setup tasks like installing dependencies.
+    init: |
+      # Install Go
+      go install golang.org/dl/go1.22.5@latest && go1.22.5 download
+      # Install Rust
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      export PATH="/home/gitpod/.cargo/bin:${PATH}"
+      # Install Node.js (via nvm)
+      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+      nvm install 18
+      # Install kubectl, Helm, Kind, Tilt, Terraform
+      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+      curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      go install sigs.k8s.io/kind@v0.23.0
+      curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+      sudo apt-get update && sudo apt-get install -y software-properties-common
+      curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+      sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+      sudo apt-get update && sudo apt-get install terraform
+      # Install pre-commit hooks
+      pip install pre-commit
+      pre-commit install
+    # The 'command' runs every time the workspace is started.
+    command: |
+      echo "Welcome to the Quantum Sentinel Nexus development environment!"
+      echo "Run 'qsnctl dev-up' to start the services."
+
+# --- Port Exposure ---
+# Defines which ports from the workspace should be exposed and what to do with them.
+ports:
+  # Expose the Tilt UI
+  - port: 10350
+    onOpen: open-preview # Open it in a browser tab automatically
+    name: Tilt UI
+    description: Live development dashboard
+
+  # Expose the QSN Dashboard UI
+  - port: 3000
+    onOpen: open-preview
+    name: QSN Dashboard
+    description: The main user interface
+
+  # Expose the API Gateway
+  - port: 3001
+    onOpen: ignore
+    name: API Gateway
+
+  # Expose the Payments Simulator
+  - port: 8089
+    onOpen: ignore
+    name: Payments Simulator
+
+# --- VS Code Extensions ---
+# Specifies which VS Code extensions should be pre-installed in the workspace.
+vscode:
+  extensions:
+    - ms-vscode.docker
+    - GitHub.copilot
+    - eamodio.gitlens
+    - golang.go
+    - rust-lang.rust-analyzer
+    - ms-python.python
+    - esbenp.prettier-vscode
+    - ms-kubernetes-tools.vscode-kubernetes-tools
+    - redhat.vscode-yaml
+    - hashicorp.terraform
