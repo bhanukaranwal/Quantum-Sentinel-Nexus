@@ -1,0 +1,32 @@
+{{/*
+charts/alert-router-svc/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "alert-router-svc.notes" -}}
+The QSN Alert Router Service (alert-router-svc) has been deployed successfully.
+
+This service consumes alerts from Kafka and broadcasts them to subscribed clients
+over WebSockets for real-time visualization.
+
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+  export INGRESS_HOST=$(kubectl get ingress {{ include "alert-router-svc.fullname" . }} -o jsonpath='{.spec.rules[0].host}')
+  echo "WebSocket URL: ws://${INGRESS_HOST}/"
+{{- else }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "alert-router-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "You can access the service by port-forwarding:"
+  echo "  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8081:$CONTAINER_PORT"
+  echo "Then you can connect to ws://localhost:8081"
+{{- end }}
+
+2. To see the pod logs, which will show consumed Kafka messages and client connections, run:
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "alert-router-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} logs -f $POD_NAME
+
+You can use a command-line tool like 'websocat' to test the WebSocket connection:
+  websocat ws://${INGRESS_HOST}/
+{{- end }}
+
+{{- .Values.notes | default (include "alert-router-svc.notes" .) }}
