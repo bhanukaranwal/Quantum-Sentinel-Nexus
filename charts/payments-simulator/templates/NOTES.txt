@@ -1,0 +1,35 @@
+{{/*
+charts/payments-simulator/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "payments-simulator.notes" -}}
+The QSN Payments Simulator (payments-simulator) has been deployed successfully.
+
+This service is used to generate high-volume synthetic transaction load against
+the ingestion-svc for performance and end-to-end testing.
+
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+  export INGRESS_HOST=$(kubectl get ingress {{ include "payments-simulator.fullname" . }} -o jsonpath='{.spec.rules[0].host}')
+  echo "Simulator UI & Trigger URL: http://${INGRESS_HOST}/"
+{{- else }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "payments-simulator.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "You can access the service by port-forwarding:"
+  echo "  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8089:$CONTAINER_PORT"
+  echo "Then open http://localhost:8089 in your browser."
+{{- end }}
+
+2. To see the pod logs, run:
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "payments-simulator.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} logs -f $POD_NAME
+
+3. To start a load test via the command line (as `qsnctl` would), run:
+   curl -X POST "http://${INGRESS_HOST}/start?users=1000&time=30s"
+
+You can also open the Simulator URL in your browser to access the Locust web UI
+and start a test manually.
+{{- end }}
+
+{{- .Values.notes | default (include "payments-simulator.notes" .) }}
