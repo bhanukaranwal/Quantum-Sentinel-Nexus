@@ -1,0 +1,91 @@
+# charts/fl-coordinator-svc/values.yaml
+# Default configuration values for the fl-coordinator-svc Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+# Since FL rounds are coordinated by a single leader, this should be 1.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/fl-coordinator-svc
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  # The port for the gRPC service.
+  port: 50052
+
+# This service does not need an Ingress as it's a backend gRPC service
+# that will be called by internal orchestrators or edge agents.
+ingress:
+  enabled: false
+
+resources:
+  # Federated learning can be memory and CPU intensive.
+  # These values should be tuned based on the model size and number of clients.
+  # We are commenting them out for local dev to avoid resource contention.
+  # limits:
+  #   cpu: "2"
+  #   memory: 4Gi
+  # requests:
+  #   cpu: "1"
+  #   memory: 2Gi
+
+autoscaling:
+  enabled: false
+
+# Environment variables to be injected into the service container.
+env: {}
+  # FABRIC_CONFIG_PATH: "/config/fabric.json"
+  # MODEL_STORE_PATH: "/models"
+
+# In a real deployment, you would mount volumes for the model store
+# and configuration files.
+#
+# volumeMounts:
+#   - name: model-store-volume
+#     mountPath: /models
+#   - name: fabric-config-volume
+#     mountPath: /config
+#
+# volumes:
+#   - name: model-store-volume
+#     persistentVolumeClaim:
+#       claimName: fl-model-pvc
+#   - name: fabric-config-volume
+#     configMap:
+#       name: fabric-config
+
