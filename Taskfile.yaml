@@ -1,0 +1,124 @@
+# Taskfile.yaml
+#
+# This file defines a set of development and build tasks using Task (taskfile.dev).
+# It acts as a cross-platform command runner, simplifying common operations.
+#
+# To install: https://taskfile.dev/installation/
+# To run a task: `task <task-name>`
+
+version: '3'
+
+# --- Global Variables ---
+vars:
+  # Define the path to the Go services for easier reference.
+  GO_SERVICES_PATH: ./services/ingestion-svc ./services/audit-svc ./services/payments-simulator
+  # Define the path to the Python services.
+  PYTHON_SERVICES_PATH: ./services/feature-engine-svc ./services/fl-coordinator-svc ./services/threat-intel-svc ./services/neuromorph-svc
+
+# --- Task Definitions ---
+tasks:
+  default:
+    cmds:
+      - task --list-all
+    silent: true
+
+  # --- Installation & Setup ---
+  install-tools:
+    desc: "Installs all necessary CLI tools (pre-commit, golangci-lint, etc.)"
+    cmds:
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - pip install pre-commit ruff
+      - pre-commit install
+
+  # --- Linting Tasks ---
+  lint:
+    desc: "Runs all linters across the entire project."
+    cmds:
+      - task: lint:go
+      - task: lint:python
+      - task: lint:helm
+      - task: lint:docker
+
+  lint:go:
+    desc: "Lints all Go services."
+    cmds:
+      - go vet {{.GO_SERVICES_PATH}}
+      - golangci-lint run {{.GO_SERVICES_PATH}}
+
+  lint:python:
+    desc: "Lints all Python services using Ruff."
+    cmds:
+      - ruff check {{.PYTHON_SERVICES_PATH}}
+
+  lint:helm:
+    desc: "Lints all Helm charts."
+    cmds:
+      - helm lint ./charts/*
+
+  lint:docker:
+    desc: "Lints all Dockerfiles using Hadolint."
+    cmds:
+      - hadolint services/*/Dockerfile
+
+  # --- Testing Tasks ---
+  test:
+    desc: "Runs all unit tests for all services."
+    cmds:
+      - task: test:go
+      - task: test:rust
+      - task: test:node
+
+  test:go:
+    desc: "Runs unit tests for all Go services."
+    cmds:
+      - go test -v -race -cover ./services/ingestion-svc/...
+      - go test -v -race -cover ./services/audit-svc/...
+
+  test:rust:
+    desc: "Runs unit tests for the Rust scoring-svc."
+    cmds:
+      - cd services/scoring-svc && cargo test
+
+  test:node:
+    desc: "Runs unit tests for the Node.js auth-gateway-svc."
+    cmds:
+      - cd services/auth-gateway-svc && npm test
+
+  # --- Build Tasks ---
+  build:
+    desc: "Builds all service binaries/artifacts (without Docker)."
+    cmds:
+      - task: build:go
+      - task: build:rust
+      - task: build:node
+
+  build:go:
+    desc: "Builds all Go service binaries."
+    cmds:
+      - CGO_ENABLED=0 go build -o build/ingestion-svc ./services/ingestion-svc
+      - CGO_ENABLED=0 go build -o build/payments-simulator ./services/payments-simulator
+
+  build:rust:
+    desc: "Builds the Rust scoring-svc binary."
+    cmds:
+      - cd services/scoring-svc && cargo build --release
+
+  build:node:
+    desc: "Builds the Node.js auth-gateway-svc."
+    cmds:
+      - cd services/auth-gateway-svc && npm run build
+
+  # --- Docker Tasks ---
+  docker-build:
+    desc: "Builds the Docker image for a specific service."
+    cmds:
+      - docker build -t qsn/{{.SERVICE}}:latest ./services/{{.SERVICE}}
+    requires:
+      vars: [SERVICE]
+
+  # --- Local Development ---
+  dev:
+    desc: "Starts the entire local development environment using qsnctl."
+    cmds:
+      - ./tools/cli/qsnctl dev-up # Assumes the CLI has been built
+
