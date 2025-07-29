@@ -1,0 +1,6 @@
+// services/payments-simulator/go.sum
+//
+// This file is intentionally empty because the Go application in this service
+// does not have any external dependencies listed in its go.mod file.
+// It only uses Go's standard library.
+
