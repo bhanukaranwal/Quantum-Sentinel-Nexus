@@ -1,0 +1,78 @@
+# charts/payments-simulator/values.yaml
+# Default configuration values for the payments-simulator Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+# For a simulator, 1 is sufficient.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/payments-simulator
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  # This is the default port for the Locust web UI and our Go trigger server.
+  port: 8089
+
+ingress:
+  # The simulator's UI and trigger endpoint can be exposed via an Ingress.
+  enabled: true
+  className: "istio" # Use the Istio ingress controller
+  annotations:
+    # kubernetes.io/ingress.class: istio
+  hosts:
+    - host: simulator.qsn.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  # Locust can be CPU and memory intensive depending on the load.
+  # We are commenting out resource requests and limits for local development.
+  # limits:
+  #   cpu: "1"
+  #   memory: 1Gi
+  # requests:
+  #   cpu: 500m
+  #   memory: 512Mi
+
+autoscaling:
+  enabled: false
+
+# Environment variables to be injected into the service container.
+env: {}
