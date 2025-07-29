@@ -1,0 +1,50 @@
+// services/digital-twin-svc/src/main/protobuf/digital_twin.proto
+syntax = "proto3";
+
+// Define the package for the generated Scala code.
+option java_package = "com.qsn.grpc";
+
+package com.qsn;
+
+// The DigitalTwinService provides methods for interacting with customer digital twins.
+service DigitalTwinService {
+  // Retrieves the current state of a customer's digital twin.
+  rpc GetDigitalTwin(GetDigitalTwinRequest) returns (GetDigitalTwinResponse) {}
+
+  // Simulates a transaction against a digital twin to check for anomalies.
+  rpc SimulateTransaction(SimulateTransactionRequest) returns (SimulateTransactionResponse) {}
+}
+
+// The message representing the state of a digital twin.
+message DigitalTwin {
+  string customer_id = 1;
+  double average_txn_value = 2;
+  double txn_frequency_per_day = 3;
+  string last_seen_location = 4;
+}
+
+// Request message for the GetDigitalTwin RPC.
+message GetDigitalTwinRequest {
+  string customer_id = 1;
+}
+
+// Response message for the GetDigitalTwin RPC.
+message GetDigitalTwinResponse {
+  // The digital twin, if it exists for the given customer.
+  // This is an optional field.
+  optional DigitalTwin twin = 1;
+}
+
+// Request message for the SimulateTransaction RPC.
+message SimulateTransactionRequest {
+  string customer_id = 1;
+  double amount = 2;
+  string currency = 3;
+}
+
+// Response message for the SimulateTransaction RPC.
+message SimulateTransactionResponse {
+  string customer_id = 1;
+  bool is_anomaly = 2;
+  string comment = 3; // Provides an explanation for the simulation result.
+}
