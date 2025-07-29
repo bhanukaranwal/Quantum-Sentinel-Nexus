@@ -1,0 +1,21 @@
+// services/audit-svc/go.sum
+
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARJDFDOcsBY7CAGiYhtA0=
+github.com/go-openapi/errors v0.20.2 h1:sB2h/2g2UI2g3g/TqT2hC2qKki3rSg2m2d6cl2Xgfa8=
+github.com/go-openapi/spec v0.20.7 h1-/c/ExgW5T0Tsc3I+s2qTfA12e52s2Qp08y4kYyv12U=
+github.com/go-openapi/swag v0.22.3 h1-3u2S2ODAl/z/oO2ylr1lVfsgqNfIZ7a33aJDrjTS2rU=
+github.com/golang/protobuf v1.5.3 h1-HfG2v4l0hMLiV2O3g5K2I14eCCJOl2SkLzcooGIiY/I=
+github.com/hyperledger/fabric-chaincode-go v0.0.0-20230228194215-b84622ba6a1a h1:5/V5u6q+5u7f57W35Xz5R2G/3u4G2R3V6y5W2x5V5u7=
+github.com/hyperledger/fabric-contract-api-go v1.2.2 h1:6y5Xz5R2G/3u4G2R3V6y5W2x5V5u7f57W35Xz5R2G/3=
+github.com/hyperledger/fabric-protos-go v0.0.0-20230228194215-b84622ba6a1a h1:3u4G2R3V6y5W2x5V5u7f57W35Xz5R2G/3u4G2R3V6y5=
+github.com/josharian/intern v1.0.0 h1:PA01ok2QyR2gU9s5q3i5+b2nw1V9eMzttEuOqA14NfE=
+github.com/mailru/easyjson v0.7.7 h1-ZUnrCsyacfTDDnIq6+98m2rYc/3qL22vG2BvB2vG2Bv=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NG817P40ADiLsv+pEWh3wHkKrsSSwA5rJrxI=
+github.com/stretchr/testify v1.8.4 h1:6Fq8oRcR553Yl/BZXzR2bK2fe/hGy7G1P7wV6r9U4eI=
+golang.org/x/net v0.10.0 h1:e7KAcQ64yIMbDA5EPQjZTf2KvPSpv2gqxxb2eQzYx4I=
+golang.org/x/sys v0.8.0 h1-scY/jPzSuN/pL65KJn0lpjF+9sJ7LuXnC10G2vB2vB2=
+golang.org/x/text v0.9.0 h1-L/p3wYc/3qL22vG2BvB2vG2BvB2vG2BvB2vG2Bv=
+google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 h1:5u7f57W35Xz5R2G/3u4G2R3V6y5W2x5V5u7f57W35Xz=
+google.golang.org/grpc v1.55.0 h1:5u7f57W35Xz5R2G/3u4G2R3V6y5W2x5V5u7f57W35Xz=
+google.golang.org/protobuf v1.30.0 h1:5u7f57W35Xz5R2G/3u4G2R3V6y5W2x5V5u7f57W35Xz=
+gopkg.in/yaml.v3 v3.0.1 h1:h8qDotaEPuJk2yBPwzD42CoYQYg7I2d7T0h+y2vG2Bv=
