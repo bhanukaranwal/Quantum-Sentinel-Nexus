@@ -1,0 +1,19 @@
+{{/*
+charts/ingestion-svc/templates/service.yaml
+This template defines the Kubernetes Service for the ingestion-svc.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ingestion-svc.fullname" . }}
+  labels:
+    {{- include "ingestion-svc.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "ingestion-svc.selectorLabels" . | nindent 4 }}
