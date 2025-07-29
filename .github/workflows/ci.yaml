@@ -1,0 +1,153 @@
+# .github/workflows/ci.yaml
+#
+# This GitHub Actions workflow defines the CI/CD pipeline for a single service.
+# It is triggered on pushes and pull requests to the service's directory.
+# This pattern would be adapted for each of the 14 microservices.
+
+name: CI/CD for Ingestion Service
+
+# --- Trigger Conditions ---
+on:
+  push:
+    branches: [ "main" ]
+    # Only run this workflow if files in the ingestion-svc directory have changed.
+    paths:
+      - 'services/ingestion-svc/**'
+  pull_request:
+    paths:
+      - 'services/ingestion-svc/**'
+
+# --- Environment Variables ---
+env:
+  # The GHCR (GitHub Container Registry) path for the Docker image.
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/ingestion-svc
+
+# --- Jobs ---
+jobs:
+  # --- 1. Lint & Test Job ---
+  lint-and-test:
+    name: Lint & Unit Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Go Lint (gofmt, vet)
+        run: |
+          gofmt -l services/ingestion-svc
+          go vet ./services/ingestion-svc/...
+
+      - name: Go Unit Tests
+        run: go test -v -race -coverprofile=coverage.out ./services/ingestion-svc/...
+
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.out
+
+  # --- 2. Security Scan Job ---
+  security-scan:
+    name: SAST & SCA Security Scan
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy for vulnerability scanning
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'HIGH,CRITICAL'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Semgrep for SAST scanning
+        uses: returntocorp/semgrep-action@v1
+        with:
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }} # Optional: for dashboard reporting
+
+  # --- 3. Build & Push Docker Image Job ---
+  build-and-push:
+    name: Build & Push Docker Image
+    needs: security-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Required to push to GHCR
+      id-token: write # Required for keyless signing with Cosign
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/ingestion-svc
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64 # Build multi-arch images
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign the container image with Cosign
+        run: cosign sign -y ${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.digest }}
+
+  # --- 4. Deploy to Dev Environment Job ---
+  deploy-to-dev:
+    name: Deploy to Dev
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Only deploy when merging to main
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Configure kubectl
+        # This step would use a secret to configure access to your dev Kubernetes cluster
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_DEV }}" > kubeconfig.yaml
+          export KUBECONFIG=kubeconfig.yaml
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install ingestion-svc ./charts/ingestion-svc \
+            --set image.repository=${{ env.IMAGE_NAME }} \
+            --set image.tag=${{ github.sha }} \
+            --namespace dev --create-namespace --wait
