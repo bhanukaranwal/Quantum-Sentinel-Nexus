@@ -1,0 +1,43 @@
+// services/scoring-svc/proto/scoring/v1/scoring.proto
+syntax = "proto3";
+
+package scoring.v1;
+
+import "google/protobuf/struct.proto";
+
+// The ScoringService provides a method to predict the risk of a transaction.
+service ScoringService {
+  // Predict takes a set of transaction features and returns a risk score.
+  rpc Predict(PredictRequest) returns (PredictResponse) {}
+}
+
+// The request message containing the features for a single transaction.
+message PredictRequest {
+  // A unique identifier for the transaction, passed through from the upstream services.
+  string transaction_id = 1;
+
+  // The bank or financial institution that originated the transaction.
+  string bank_id = 2;
+
+  // A flexible structure to hold the various features engineered by the
+  // feature-engine-svc. This allows us to add or remove features without
+  // needing to change the protobuf schema every time.
+  //
+  // Example:
+  // {
+  //   "is_high_value": true,
+  //   "original_amount": 12345.67,
+  //   "is_international": false
+  // }
+  google.protobuf.Struct features = 3;
+}
+
+// The response message containing the risk score.
+message PredictResponse {
+  // The calculated risk score, typically between 0.0 and 1.0.
+  float risk_score = 1;
+
+  // The version of the machine learning model that was used to generate the score.
+  // This is crucial for auditing, debugging, and tracking model performance.
+  string model_version = 2;
+}
