@@ -1,0 +1,25 @@
+{{/*
+charts/scoring-svc/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "scoring-svc.notes" -}}
+The QSN Scoring Service (scoring-svc) has been deployed successfully.
+
+This is a high-performance, low-latency gRPC service responsible for real-time
+fraud risk prediction.
+
+1. To check the status of the deployment, run:
+  kubectl get deployments -l "app.kubernetes.io/name={{ include "scoring-svc.name" . }}"
+
+2. To see the pod logs, run:
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "scoring-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} logs -f $POD_NAME
+
+3. This service is available within the cluster at the following DNS address and port:
+   {{ include "scoring-svc.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+Other services, like the auth-gateway, can use this address to send gRPC requests for scoring.
+{{- end }}
+
+{{- .Values.notes | default (include "scoring-svc.notes" .) }}
