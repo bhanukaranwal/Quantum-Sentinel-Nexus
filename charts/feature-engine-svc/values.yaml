@@ -1,0 +1,80 @@
+# charts/feature-engine-svc/values.yaml
+# Default configuration values for the feature-engine-svc Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/feature-engine-svc
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+# This service does not need a Kubernetes Service or Ingress, as it only
+# communicates internally with Kafka and does not expose any ports.
+
+resources:
+  # We are commenting out resource requests and limits for local development
+  # to avoid issues on resource-constrained machines. In production, these
+  # should be carefully configured.
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 250m
+  #   memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+# Environment variables to be injected into the service container.
+# These values are read by the Python application at startup.
+env:
+  # The address of the Kafka brokers.
+  KAFKA_BROKERS: "qsn-infra-kafka:9092"
+
+  # The Kafka topic to consume raw transactions from.
+  INPUT_TOPIC: "txn-raw"
+
+  # The Kafka topic to publish enriched features to.
+  OUTPUT_TOPIC: "features"
+
+  # The consumer group ID for this service. Kafka uses this to coordinate
+  # which messages have been processed by the group.
+  CONSUMER_GROUP_ID: "feature-engine-group"
+
