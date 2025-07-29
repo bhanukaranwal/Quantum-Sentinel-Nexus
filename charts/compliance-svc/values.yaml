@@ -1,0 +1,73 @@
+# charts/compliance-svc/values.yaml
+# Default configuration values for the compliance-svc Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/compliance-svc
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+service:
+  # This service is a background worker, but we expose the actuator port
+  # for Kubernetes health probes.
+  type: ClusterIP
+  port: 8083
+
+# This service does not need an Ingress as it's a background worker.
+ingress:
+  enabled: false
+
+resources:
+  # Drools can be memory intensive depending on the number and complexity of rules.
+  # These values should be tuned based on performance testing.
+  # We are commenting them out for local dev to avoid resource contention.
+  # limits:
+  #   cpu: "1"
+  #   memory: 1Gi
+  # requests:
+  #   cpu: 500m
+  #   memory: 512Mi
+
+autoscaling:
+  enabled: false
+
+# Environment variables are not directly used here, as the configuration
+# is managed through the application.properties file. However, you could
+# use this section to override properties at runtime if needed.
+env: {}
+#  SPRING_KAFKA_BOOTSTRAP_SERVERS: "qsn-infra-kafka:9092"
