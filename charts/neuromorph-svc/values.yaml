@@ -1,0 +1,82 @@
+# charts/neuromorph-svc/values.yaml
+# Default configuration values for the neuromorph-svc Helm chart.
+
+# replicaCount specifies the number of pods to run for this service.
+replicaCount: 1
+
+image:
+  # The repository where the Docker image is stored.
+  repository: your-docker-registry/neuromorph-svc
+  # The policy for pulling the image.
+  pullPolicy: IfNotPresent
+  # The tag of the image to deploy.
+  tag: "latest"
+
+# imagePullSecrets is a list of secrets needed to pull images from a private registry.
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  # Run as a non-root user for security.
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  # Disallow privilege escalation.
+  allowPrivilegeEscalation: false
+  # Drop all Linux capabilities.
+  capabilities:
+    drop:
+    - ALL
+  # Make the root filesystem read-only.
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  # This service might be exposed internally or through the main gateway.
+  # For local development, we can enable a direct Ingress.
+  enabled: true
+  className: "istio" # Use the Istio ingress controller
+  annotations:
+    # kubernetes.io/ingress.class: istio
+  hosts:
+    - host: neuromorph.qsn.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  # We are commenting out resource requests and limits for local development
+  # to avoid issues on resource-constrained machines.
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 200m
+  #   memory: 128Mi
+
+# nodeSelector would be used to schedule this pod onto a node with
+# specific neuromorphic hardware attached.
+# nodeSelector:
+#   hardware-type: intel-loihi-2
+
+autoscaling:
+  enabled: false
+
+# Environment variables to be injected into the service container.
+env: {}
