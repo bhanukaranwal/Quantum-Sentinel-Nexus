@@ -1,0 +1,38 @@
+{{/*
+charts/ingestion-svc/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "ingestion-svc.notes" -}}
+The QSN Ingestion Service (ingestion-svc) has been deployed successfully.
+
+This service is responsible for receiving raw transaction data and publishing it to the message bus.
+
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+  export INGRESS_HOST=$(kubectl get ingress {{ include "ingestion-svc.fullname" . }} -o jsonpath='{.spec.rules[0].host}')
+  echo "http://${INGRESS_HOST}/"
+{{- else }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "ingestion-svc.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "You can access the service by port-forwarding:"
+  echo "  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT"
+  echo "Then you can send requests to http://localhost:8080"
+{{- end }}
+
+To send a sample transaction, you can use curl:
+curl -X POST -H "Content-Type: application/json" \
+  -d '{
+    "amount": 123.45,
+    "currency": "USD",
+    "from_account": "acc_123",
+    "to_account": "acc_456",
+    "bank_id": "bank_a"
+  }' \
+  http://${INGRESS_HOST}/v1/txn
+
+Check the pod logs to see the transaction being processed:
+kubectl logs -f deploy/{{ include "ingestion-svc.fullname" . }}
+{{- end }}
+
+{{- .Values.notes | default (include "ingestion-svc.notes" .) }}
