@@ -1,0 +1,43 @@
+# infra/local-dev/kind-cluster.yaml
+# This configuration file defines the local Kubernetes cluster managed by KinD.
+# It's used by `qsnctl dev-up` to bootstrap the development environment.
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: qsn-dev
+
+# Defines the nodes in our local cluster.
+# We'll use one control-plane node to keep the local footprint small.
+nodes:
+- role: control-plane
+  # This section maps ports from the host machine to the ingress controller
+  # running inside the KinD cluster. This allows us to access services
+  # via localhost:<port>.
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  # Map localhost:80 to the ingress controller's HTTP port
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  # Map localhost:443 to the ingress controller's HTTPS port
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
+  # Expose the main dashboard UI for direct access
+  - containerPort: 3000
+    hostPort: 3000
+    protocol: TCP
+  # Expose the gRPC scoring service for local testing with tools like ghz
+  - containerPort: 50051
+    hostPort: 50051
+    protocol: TCP
+  # Expose the payments simulator for seeding data
+  - containerPort: 8089 # Default Locust web UI port
+    hostPort: 8089
+    protocol: TCP
+
