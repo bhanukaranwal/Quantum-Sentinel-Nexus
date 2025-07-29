@@ -1,0 +1,19 @@
+{{/*
+charts/threat-intel-svc/templates/service.yaml
+This template defines the Kubernetes Service for the threat-intel-svc.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "threat-intel-svc.fullname" . }}
+  labels:
+    {{- include "threat-intel-svc.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "threat-intel-svc.selectorLabels" . | nindent 4 }}
