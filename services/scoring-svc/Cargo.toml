@@ -1,0 +1,32 @@
+# services/scoring-svc/Cargo.toml
+
+[package]
+name = "scoring-svc"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# The core gRPC library for Rust.
+tonic = "0.11"
+
+# The core library for writing asynchronous applications in Rust.
+# We enable the "macros" and "rt-multi-thread" features for convenience.
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+# The Protobuf implementation used by tonic.
+prost = "0.12"
+
+# A library for logging.
+# In a real app, you would integrate this with a structured logging framework
+# that outputs JSON, compatible with Loki or other log aggregators.
+log = "0.4"
+env_logger = "0.11"
+
+
+# Build dependencies are only used during the compilation process
+# and are not included in the final binary.
+[build-dependencies]
+# The build-time component of tonic that compiles .proto files into Rust code.
+tonic-build = "0.11"
