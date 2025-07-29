@@ -1,0 +1,81 @@
+# docs/mkdocs.yml
+#
+# This is the configuration file for the MkDocs documentation site.
+# It defines the site's structure, navigation, theme, and plugins.
+
+# --- Site Information ---
+site_name: Quantum Sentinel Nexus
+site_url: https://your-org.github.io/quantum-sentinel-nexus/
+site_author: Your Name
+site_description: >-
+  Documentation for the Quantum Sentinel Nexus, a quantum-secure,
+  consortium-grade, federated fraud-detection ecosystem.
+
+# --- Repository Information ---
+repo_name: your-org/quantum-sentinel-nexus
+repo_url: https://github.com/your-org/quantum-sentinel-nexus
+edit_uri: "" # Disables the "Edit this page" button
+
+# --- Site Navigation ---
+# This section defines the structure of the navigation menu on the left.
+nav:
+  - 'Home': 'index.md'
+  - 'Getting Started':
+    - 'Overview': 'getting-started/overview.md'
+    - 'Local Setup': 'getting-started/local-setup.md'
+    - '0 → Alert in 15 Min': 'getting-started/tutorial.md'
+  - 'Architecture':
+    - 'High-Level Design': 'architecture/high-level-design.md'
+    - 'Microservice APIs': 'architecture/microservice-apis.md'
+    - 'Federated Learning': 'architecture/federated-learning.md'
+    - 'Blockchain Network': 'architecture/blockchain.md'
+    - 'Security': 'architecture/security.md'
+  - 'Developer Guides':
+    - 'Creating a New Service': 'guides/creating-a-service.md'
+    - 'CI/CD Pipeline': 'guides/ci-cd.md'
+  - 'Operations':
+    - 'Deployment': 'ops/deployment.md'
+    - 'Monitoring & Observability': 'ops/monitoring.md'
+  - 'Architecture Decision Records': 'adr/index.md'
+
+# --- Theme Configuration ---
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/favicon.png
+  palette:
+    # Palette toggle for light vs dark mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+    - content.code.copy
+
+# --- Markdown Extensions ---
+# Enables extra features for writing Markdown content.
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - toc:
+      permalink: true
+
+# --- Plugins ---
+plugins:
+  - search # Built-in search plugin
