@@ -1,0 +1,30 @@
+{{/*
+charts/edge-node-agent/templates/NOTES.txt
+This file contains post-installation notes that are displayed to the user
+after a successful `helm install`.
+*/}}
+{{- define "edge-node-agent.notes" -}}
+The QSN Edge Node Agent (edge-node-agent) has been deployed successfully as a DaemonSet.
+
+This agent is designed to run on specific edge nodes within your cluster that have
+access to local data and specialized hardware (e.g., GPUs).
+
+1. To verify that the agent pods are running on the correct nodes, first find the
+   node selector labels defined in your values.yaml file:
+   Node Selector: {{ .Values.nodeSelector | toYaml | nindent 4 }}
+
+2. List the nodes that match these labels:
+   kubectl get nodes --selector={{ range $key, $val := .Values.nodeSelector }}{{ $key }}={{ $val }}{{ end }}
+
+3. You should see one 'edge-node-agent' pod running on each of the nodes listed above.
+   Verify this by running:
+   kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "edge-node-agent.name" . }}" -o wide
+
+4. To see the logs from an agent on a specific node, get the pod name and run:
+   export POD_NAME=<pod-name-from-previous-command>
+   kubectl --namespace {{ .Release.Namespace }} logs -f $POD_NAME
+
+The agent will now wait to be called by the FL Coordinator to participate in a training round.
+{{- end }}
+
+{{- .Values.notes | default (include "edge-node-agent.notes" .) }}
